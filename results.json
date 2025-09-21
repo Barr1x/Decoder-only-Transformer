@@ -1,0 +1,13 @@
+{
+    "stdout_visibility": "visible",
+    "tests": [
+        {
+            "score": 0,
+            "status": "failed",
+            "max_score": 0,
+            "name": "test_not_invertible",
+            "output": "    def test_not_invertible():\n        # you can try to break \"google-bert/bert-base-cased\"\n        # or another tokenizer you like: https://huggingface.co/models?pipeline_tag=text-generation\n        tokenizer_name = \"google-bert/bert-base-cased\"\n        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)\n    \n        s = 'Hello'\n    \n        s_recovered = tokenizer.decode(tokenizer.encode(s, add_special_tokens=False))\n>       assert s != s_recovered\nE       AssertionError: assert 'Hello' != 'Hello'\nNone\ntests/test_tokenizer.py:31: AssertionError",
+            "visibility": "visible"
+        }
+    ]
+}

@@ -8,11 +8,11 @@ from pytest_utils.decorators import max_score
 def test_not_injective():
     # you can try to break "google-bert/bert-base-cased"
     # or another tokenizer you like: https://huggingface.co/models?pipeline_tag=text-generation
-    tokenizer_name = "google-bert/bert-base-cased"
+    tokenizer_name = "google-bert/bert-base-uncased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
-    s1 = ...
-    s2 = ...
+    s1 = 'hello'
+    s2 = 'Hello'
 
     assert s1 != s2 and tokenizer.encode(
         s1, add_special_tokens=False
@@ -25,7 +25,7 @@ def test_not_invertible():
     tokenizer_name = "google-bert/bert-base-cased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
-    s = ...
+    s = 'Hello     World'
 
     s_recovered = tokenizer.decode(tokenizer.encode(s, add_special_tokens=False))
     assert s != s_recovered
@@ -37,8 +37,8 @@ def test_not_preserving_concat():
     tokenizer_name = "google-bert/bert-base-cased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
-    a = ...
-    b = ...
+    a = 'with'
+    b = 'out'
     assert tokenizer.encode(a + b, add_special_tokens=False) != tokenizer.encode(
         a, add_special_tokens=False
     ) + tokenizer.encode(b, add_special_tokens=False)
@@ -230,3 +230,9 @@ def test_100_merges():
         (97, 131): 226,
         (102, 97): 227,
     }
+    
+if __name__ == "__main__":
+    test_not_injective()
+    test_not_invertible()
+    test_not_preserving_concat()
+    
