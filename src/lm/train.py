@@ -44,9 +44,18 @@ def random_batch_sampler(
         a contiguous subsequence of x, sampled uniformly at random. The
         output tensor should be on the right device.
     """
-
+    max_index = tokens.shape[0] - seq_len
+    
     while True:
-        yield ...
+        batch = []
+        random_indexs = torch.randint(0, max_index+1, (batch_size,))
+        for i in random_indexs:
+            i = i.item()
+            batch.append(tokens[i : i + seq_len])
+        batch = torch.stack(batch).to(device)
+        
+        yield batch
+            
 
 
 def sequential_batch_sampler(
@@ -70,9 +79,18 @@ def sequential_batch_sampler(
         of tokens is not divisible by (batch_size * seq_len), you could drop
         the last batch.
     """
+    
 
-    for batch in ...:
-        yield ...
+    tokens_per_batch = batch_size * seq_len
+    
+    for start_idx in range(0, len(tokens), tokens_per_batch):
+        chunk = tokens[start_idx:start_idx + tokens_per_batch]
+        if len(chunk) < tokens_per_batch:
+            break
+            
+        batch = rearrange(chunk, "(B S) -> B S", B=batch_size, S=seq_len)
+        
+        yield batch.to(device)
 
 
 def cosine_lr_schedule(
@@ -97,11 +115,12 @@ def cosine_lr_schedule(
         assert num_training_steps >= num_warmup_steps >= 0
 
         if t <= num_warmup_steps:
-            lr = ...
+            lr = max_lr * (t / num_warmup_steps)
         elif t >= num_training_steps:
-            lr = ...
+            lr = min_lr
         else:  # t >= num_training_steps
-            lr = ...
+            progress = (t - num_warmup_steps) / (num_training_steps - num_warmup_steps)
+            lr = min_lr + (max_lr - min_lr) * 0.5 * (1 + math.cos(math.pi * progress))
         return lr
 
     return get_lr
@@ -127,9 +146,12 @@ def compute_language_modeling_loss(
     Hint: Think about what are the groundtruth labels for next token prediction.
     """
 
-    labels = ...
-    logits = ...
-    return ...
+    labels = input_ids[:, 1:]
+    labels = rearrange(labels, "B S -> (B S)")
+    logits = logits[:, :-1, :]
+    logits = rearrange(logits, "B S D -> (B S) D")
+    
+    return F.cross_entropy(logits, labels, reduction="mean")
 
 
 def train(
@@ -159,21 +181,23 @@ def train(
 
     for step in (pbar := trange(num_training_steps)):
         t0 = time.time()
-        lr = ...
+        lr = lr_schedule(step)
         set_lr(optimizer, lr)
 
         for _ in range(grad_accumulation_steps):
             # TODO: sample a batch, generate logits and compute loss
-            input_ids = ...
+            input_ids = next(batch_sampler)
             with autocast:
-                logits = ...
-            loss = ...
+                logits = model(input_ids)
+            loss = compute_language_modeling_loss(input_ids, logits)
             (loss / grad_accumulation_steps).backward()
             loss_f = loss.item()
             losses.append(loss_f)
 
         # TODO: update the model using the accumulated gradients
         loss_mean = np.mean(losses).item()
+        optimizer.step()
+        optimizer.zero_grad()
 
         FLOPs_per_step = (
             model.flops_per_token

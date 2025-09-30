@@ -98,3 +98,16 @@ def test_lm_forward_on_gpu():
     iids = torch.LongTensor([[3, 1, 4], [1, 5, 9]]).to(device)
     logits = lm(iids)
     assert logits.shape == torch.Size([2, 3, 10])
+
+if __name__ == "__main__":
+    test_q_kT_v()
+    print("test_q_kT_v passed")
+    test_self_attention()
+    print("test_self_attention passed")
+    test_mha_forward()
+    print("test_mha_forward passed")
+    test_lm_forward_on_cpu()
+    print("test_lm_forward_on_cpu passed")
+    # test_lm_forward_on_gpu()
+    # print("test_lm_forward_on_gpu passed")
+

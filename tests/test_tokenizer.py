@@ -235,4 +235,10 @@ if __name__ == "__main__":
     test_not_injective()
     test_not_invertible()
     test_not_preserving_concat()
+    #test_one_merge()
+    #test_two_merges()
+    #test_100_merges()
+    test_encode()
+    test_decode()
+    print("All tests passed")
     

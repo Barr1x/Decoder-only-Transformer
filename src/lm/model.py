@@ -48,9 +48,13 @@ class MultiHeadAttention(nn.Module):
             kT: The transpose of the key vector used by multi-head attention (B x H x HD x S)
             v: The value vector used by multi-head attention (B x H x S x HD)
         """
-        q = ...
-        kT = ...
-        v = ...
+        q = self.q_attn(x)
+        k = self.k_attn(x)
+        v = self.v_attn(x)
+        
+        q = rearrange(q, 'B S (H HD) -> B H S HD', H = self.n_head)
+        kT = rearrange(k, 'B S (H HD) -> B H HD S', H = self.n_head)
+        v = rearrange(v, 'B S (H HD) -> B H S HD', H = self.n_head)
 
         return q, kT, v
 
@@ -76,7 +80,7 @@ class MultiHeadAttention(nn.Module):
         """
 
         # compute the attention weights using q and kT
-        qkT =...
+        qkT = q @ kT # (B, H, S, S)
         unmasked_attn_logits = qkT * self.scale_factor
 
         """
@@ -102,7 +106,11 @@ class MultiHeadAttention(nn.Module):
 
         Hint: torch.triu or torch.tril
         """
-        causal_mask = ...
+        S = qkT.shape[2]
+        causal_mask = torch.tril(torch.ones(S, S, device=q.device)).bool()
+        causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
+        
+        
 
         """
         Sometimes, we want to pad the input sequences so that they have the same
@@ -145,7 +153,13 @@ class MultiHeadAttention(nn.Module):
         if attention_mask is None:
             mask = causal_mask
         else:
-            mask = ...
+            # attention_mask: (B, S) -> (B, 1, 1, S) to mask keys (columns)
+            # When attention_mask is 0.0, mask out ALL keys for that position
+            # When attention_mask is 1.0, use causal mask
+            attention_mask = attention_mask.unsqueeze(1).unsqueeze(1)  # (B, 1, 1, S)
+            mask = causal_mask & attention_mask.bool()  # (B, 1, S, S)
+        
+        mask = mask.to(q.device)
 
         """
         Fill unmasked_attn_logits with float_min wherever causal mask has value False.
@@ -153,12 +167,20 @@ class MultiHeadAttention(nn.Module):
         Hint: torch.masked_fill
         """
         float_min = torch.finfo(q.dtype).min
-        attn_logits = ...
-        attn_weights = ...
+        attn_logits = unmasked_attn_logits.masked_fill(~mask, float_min)
+        attn_weights = F.softmax(attn_logits, dim=-1)
+        
+        # Handle case where entire row is masked (attention_mask = 0.0)
+        # When all values are float_min, softmax produces uniform distribution
+        # We want zeros instead
+        row_mask = mask.any(dim=-1, keepdim=True)  # (B, 1, S, 1)
+        attn_weights = attn_weights * row_mask
+        
         attn_weights = self.dropout(attn_weights)
 
         # scale value by the attention weights.
-        attn = ...
+        attn = attn_weights @ v
+        attn = rearrange(attn, "B H S HD -> B S (H HD)")
 
         return attn
 
@@ -177,8 +199,10 @@ class MultiHeadAttention(nn.Module):
         Returns:
             y: outputs (B x S x D) of the multi-head attention module
         """
+        q, kT, v = self.q_kT_v(x)
+        attn = self.self_attention(q, kT, v, attention_mask)
+        y = self.projection(attn)
 
-        y = ...
         return y
 
 
@@ -207,10 +231,11 @@ class FeedForward(nn.Module):
         we are going to follow GPT-2 which uses GeLU. You should also apply
         self.dropout to the output.
         """
-
-        y = F.gelu(...)
-        z = self.dropout(...)
-        return z
+        y = self.linear_in(x)
+        y = F.gelu(y)
+        y = self.linear_out(y)
+        y = self.dropout(y)
+        return y
 
 
 class DecoderBlock(nn.Module):
@@ -249,8 +274,13 @@ class DecoderBlock(nn.Module):
         implementations should pass the tests. See explanations here:
         https://sh-tsang.medium.com/review-pre-ln-transformer-on-layer-normalization-in-the-transformer-architecture-b6c91a89e9ab
         """
-
-        return ...
+        attn = self.mha(x, attention_mask)
+        x = x + attn
+        x = self.ln_1(x)
+        ff = self.ff(x)
+        x = x + ff
+        x = self.ln_2(x)
+        return x
 
 
 class DecoderLM(nn.Module):
@@ -335,8 +365,13 @@ class DecoderLM(nn.Module):
         """
 
         assert input_ids.shape[1] <= self.n_positions
-        token_embeddings = ...
-        positional_embeddings = ...
+        token_embeddings = self.token_embeddings(input_ids)
+        position_ids = torch.arange(input_ids.shape[1], device=input_ids.device)
+        if (attention_mask is not None):
+            position_ids = torch.cumsum(attention_mask, dim=1) - 1
+            position_ids = position_ids * attention_mask
+            position_ids = position_ids.long()
+        positional_embeddings = self.position_embeddings(position_ids)
         return self.dropout(token_embeddings + positional_embeddings)
 
     def token_logits(self, x: torch.FloatTensor) -> torch.FloatTensor:
@@ -351,7 +386,7 @@ class DecoderLM(nn.Module):
         Hint: Question 2.2.
         """
 
-        logits = ...
+        logits = x @ self.token_embeddings.weight.T
         return logits
 
     def forward(
@@ -369,8 +404,12 @@ class DecoderLM(nn.Module):
         Returns:
             logits: logits corresponding to the predicted next token likelihoods (B x S x V)
         """
+        x = self.embed(input_ids, attention_mask)
+        for block in self.blocks:
+            x = block(x, attention_mask)
+        # x = self.ln(x)
+        logits = self.token_logits(x)
 
-        logits = ...
         return logits
 
     def _init_weights(self, module):

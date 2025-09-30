@@ -238,3 +238,18 @@ def test_train_sanity_check():
     eval_results = evaluate(model, val_sampler, autocast)
     print(eval_results)
     assert eval_results["val-loss"] >= math.log(n_vocab) * 0.95, "model is cheating"
+
+
+if __name__ == "__main__":
+    test_random_batch_sampler()
+    print("test_random_batch_sampler passed")
+    test_sequential_batch_sampler()
+    print("test_sequential_batch_sampler passed")
+    test_cosine_lr_schedule()
+    print("test_cosine_lr_schedule passed")
+    test_compute_language_modeling_loss()
+    print("test_compute_language_modeling_loss passed")
+    test_train()
+    print("test_train passed")
+    test_train_sanity_check()
+    print("test_train_sanity_check passed")

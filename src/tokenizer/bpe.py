@@ -50,7 +50,7 @@ def compute_bigram_statistics(
     bigram_counter = Counter() if counter is None else counter
     for left, right in zip(token_ids, token_ids[1:]):
         bigram_counter[(left, right)] += 1
-    return bigram_counter
+    return bigram_counter   
 
 
 def replace_bigram(token_ids: list[int], bigram: Bigram, bigram_id: int) -> list[int]:
@@ -97,8 +97,14 @@ class ASCIIBPETokenizer:
         Returns:
             list[int]: New list of token ids, after one merge step
         """
+        bigram_counter = compute_bigram_statistics(token_ids)
+        items = bigram_counter.items()
+        bigram, bigram_count = sorted(items,key=lambda x: (-x[1], x[0]))[0]
+        new_token_id = len(self.vocab)
+        self.vocab.append(self.vocab[bigram[0]] + self.vocab[bigram[1]])
+        self.merge_rules[bigram] = new_token_id
+        return replace_bigram(token_ids, bigram, new_token_id)
 
-        return ...
 
     def encode(self, text: str) -> list[int]:
         """Convert text to tokens.
@@ -111,7 +117,18 @@ class ASCIIBPETokenizer:
         """
 
         assert all(ord(c) < 128 for c in text), "input text is not ASCII"
-        token_ids = ...
+        token_ids = string_to_ascii(text)
+        
+        bigram_statistics = compute_bigram_statistics(token_ids)
+        while True:
+            for bigram, bigram_id in self.merge_rules.items():
+                if bigram_statistics[bigram] > 0:
+                    token_ids = replace_bigram(token_ids, bigram, bigram_id)
+                    break
+            bigram_statistics = compute_bigram_statistics(token_ids)
+            if not any(bigram_statistics[bigram] > 0 for bigram in self.merge_rules.keys()):
+                break
+        
         return token_ids
 
     def decode(self, token_ids: list[int]) -> str:
@@ -123,7 +140,7 @@ class ASCIIBPETokenizer:
         Returns:
             str: An ASCII string.
         """
-        return ...
+        return "".join([self.vocab[token_id] for token_id in token_ids])
 
     @classmethod
     def from_config(cls, config_file: str):
@@ -187,7 +204,7 @@ class UnicodeBPETokenizer:
         self.vocab: list[bytes] = [int.to_bytes(i) for i in range(256)]
 
         # self.merge_rules maps a bigram (a pair of token ids) to a single token id
-        self.merge_rules: list[Bigram, int] = {}
+        self.merge_rules: dict[Bigram, int] = {}
 
         # regex pattern that groups preceding whitespace characters with regular characters
         self.compiled_pattern = re.compile(r"(\s+\S*)")
