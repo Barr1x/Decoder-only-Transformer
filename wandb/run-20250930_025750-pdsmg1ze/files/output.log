@@ -1,0 +1,9 @@
+model parameters = 2M
+Your model is [1;36m6.[0m6MB. This should be within the 100MB limit of Gradescope.
+train dataset tokens = 520M
+train FLOPs = [1;36m8.13e+13[0m
+100%|███████████████████████████████████████████████| 2000/2000 [00:50<00:00, 39.92it/s, train loss=7.34, TFLOPS=1.7]
+model saved to outputs/GPT-tiny/model.pt
+evaluating..: 1220it [00:09, 132.52it/s]
+evaluation results: [1m{[0m[32m"val-loss"[0m: [1;36m7.225051229508197[0m, [32m"val-perplexity"[0m: [1;36m1373.4089728932256[0m[1m}[0m
+done!

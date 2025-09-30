@@ -1,0 +1,43 @@
+{
+  "os":  "Linux-5.15.0-1045-aws-x86_64-with-glibc2.31",
+  "python":  "CPython 3.11.13",
+  "startedAt":  "2025-09-30T02:57:50.365356Z",
+  "args":  [
+    "configs/GPT-tiny.yaml"
+  ],
+  "program":  "/home/ubuntu/Decoder-only-Transformer/src/lm/train.py",
+  "codePath":  "src/lm/train.py",
+  "codePathLocal":  "src/lm/train.py",
+  "git":  {
+    "remote":  "https://github.com/Barr1x/Decoder-only-Transformer.git",
+    "commit":  "b2134f6f19391980ff8a3c497bec39816f69f327"
+  },
+  "email":  "boningxing743@gmail.com",
+  "root":  "/home/ubuntu/Decoder-only-Transformer",
+  "host":  "ip-172-31-32-153",
+  "executable":  "/home/ubuntu/miniconda3/envs/cmu-llms-hw2/bin/python",
+  "cpu_count":  4,
+  "cpu_count_logical":  8,
+  "gpu":  "NVIDIA A10G",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "46759010304",
+      "used":  "40961138688"
+    }
+  },
+  "memory":  {
+    "total":  "33280274432"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA A10G",
+      "memoryTotal":  "24146608128",
+      "cudaCores":  10240,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-815d8fd7-7b91-808d-ed67-e91c95a04b0e"
+    }
+  ],
+  "cudaVersion":  "12.2",
+  "writerId":  "fad2i7cax74io88v14b69nagpq0k59ij"
+}

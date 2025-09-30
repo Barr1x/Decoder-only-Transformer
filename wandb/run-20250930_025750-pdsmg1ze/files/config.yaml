@@ -1,0 +1,78 @@
+_wandb:
+    value:
+        cli_version: 0.22.1
+        e:
+            fad2i7cax74io88v14b69nagpq0k59ij:
+                args:
+                    - configs/GPT-tiny.yaml
+                codePath: src/lm/train.py
+                codePathLocal: src/lm/train.py
+                cpu_count: 4
+                cpu_count_logical: 8
+                cudaVersion: "12.2"
+                disk:
+                    /:
+                        total: "46759010304"
+                        used: "40961138688"
+                email: boningxing743@gmail.com
+                executable: /home/ubuntu/miniconda3/envs/cmu-llms-hw2/bin/python
+                git:
+                    commit: b2134f6f19391980ff8a3c497bec39816f69f327
+                    remote: https://github.com/Barr1x/Decoder-only-Transformer.git
+                gpu: NVIDIA A10G
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 10240
+                      memoryTotal: "24146608128"
+                      name: NVIDIA A10G
+                      uuid: GPU-815d8fd7-7b91-808d-ed67-e91c95a04b0e
+                host: ip-172-31-32-153
+                memory:
+                    total: "33280274432"
+                os: Linux-5.15.0-1045-aws-x86_64-with-glibc2.31
+                program: /home/ubuntu/Decoder-only-Transformer/src/lm/train.py
+                python: CPython 3.11.13
+                root: /home/ubuntu/Decoder-only-Transformer
+                startedAt: "2025-09-30T02:57:50.365356Z"
+                writerId: fad2i7cax74io88v14b69nagpq0k59ij
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 16
+                - 61
+            "4": 3.11.13
+            "5": 0.22.1
+            "12": 0.22.1
+            "13": linux-x86_64
+batch_size:
+    value: 32
+device:
+    value: auto
+grad_accumulation_steps:
+    value: 1
+max_lr:
+    value: 0.0005
+min_lr:
+    value: 0.0001
+model_config:
+    value:
+        n_embd: 32
+        n_head: 2
+        n_layer: 2
+        n_positions: 128
+num_training_steps:
+    value: 2000
+num_warmup_steps:
+    value: 10
+output_dir:
+    value: outputs/GPT-tiny
+seq_len:
+    value: 128
+tokenizer_encoding:
+    value: gpt2
