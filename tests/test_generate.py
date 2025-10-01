@@ -29,3 +29,8 @@ def test_softmax_with_temperature():
         torch.FloatTensor(torch.ones((2, 3)) / 3),
         rtol=1e-3,
     )
+
+
+if __name__ == "__main__":
+    test_softmax_with_temperature()
+    print("All tests passed")

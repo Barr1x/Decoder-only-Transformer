@@ -11,8 +11,8 @@ def test_not_injective():
     tokenizer_name = "google-bert/bert-base-uncased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
-    s1 = 'hello'
-    s2 = 'Hello'
+    s1 = 'hello world'
+    s2 = 'Hello World'
 
     assert s1 != s2 and tokenizer.encode(
         s1, add_special_tokens=False
@@ -37,8 +37,8 @@ def test_not_preserving_concat():
     tokenizer_name = "google-bert/bert-base-cased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
-    a = 'with'
-    b = 'out'
+    a = 'un'
+    b = 'known'
     assert tokenizer.encode(a + b, add_special_tokens=False) != tokenizer.encode(
         a, add_special_tokens=False
     ) + tokenizer.encode(b, add_special_tokens=False)
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     #test_one_merge()
     #test_two_merges()
     #test_100_merges()
-    test_encode()
-    test_decode()
+    # test_encode()
+    # test_decode()
     print("All tests passed")
     

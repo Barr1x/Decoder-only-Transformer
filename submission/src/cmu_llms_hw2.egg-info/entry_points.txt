@@ -1,0 +1,2 @@
+[pytest11]
+pytest_utils = pytest_utils.pytest_plugin
